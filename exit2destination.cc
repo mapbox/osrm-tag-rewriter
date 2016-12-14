@@ -110,10 +110,12 @@ struct ExitToRewriter : osmium::handler::Handler {
       if (!destination && isLink && isOneway) {
         auto it = nodesToDestination.find(startNode);
 
-        if (it != end(nodesToDestination))
+        if (it != end(nodesToDestination)) {
           copyTagsAddDestination(builder, way.tags(), it->second);
-        else
+          addedTags += 1;
+        } else {
           copyTags(builder, way.tags());
+        }
       } else {
         copyTags(builder, way.tags());
       }
@@ -139,6 +141,7 @@ struct ExitToRewriter : osmium::handler::Handler {
     return tmp;
   }
 
+  std::size_t addedTags = 0;
   osmium::memory::Buffer outbuf{4096};
   std::unordered_map<NodeId, std::string> nodesToDestination;
 };
@@ -165,6 +168,8 @@ int main(int argc, char **argv) try {
 
   writer.close();
   reader.close();
+
+  std::fprintf(stdout, "Ok: added %zu destination tags\n", rewriter.addedTags);
 
 } catch (const std::exception &e) {
   std::fprintf(stderr, "Error: %s\n", e.what());
