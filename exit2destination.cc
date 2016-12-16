@@ -1,14 +1,13 @@
 #include <cstdlib>
 #include <cstring>
 
+#include <iterator>
 #include <string>
 #include <unordered_map>
 #include <utility>
 
 #include <osmium/builder/osm_object_builder.hpp>
 #include <osmium/handler.hpp>
-#include <osmium/io/input_iterator.hpp>
-#include <osmium/io/output_iterator.hpp>
 #include <osmium/io/pbf_input.hpp>
 #include <osmium/io/pbf_output.hpp>
 #include <osmium/io/reader.hpp>
@@ -16,16 +15,13 @@
 #include <osmium/osm/types.hpp>
 #include <osmium/visitor.hpp>
 
-// Ideas for improvement:
-//  - in the way() function exit early when not highway
-//  - inject output buffer size hint based on input buffer .committed() + expected destination tag length
-//  - handle ref and other tags on the motorway junction node in the same way (check first if worth it)
-//  - combine with planet pre-filtering: think filtering relations other than turn restrictions, buildings, trees
+// Ideas for Improvement:
+//  - In the way() function exit early when not highway
+//  - Inject output buffer size hint based on input buffer .committed() + expected destination tag length
+//  - Handle ref and other tags on the motorway junction node in the same way (check first if worth it)
+//  - Combine with planet pre-filtering: think filtering relations other than turn restrictions, buildings, trees
 
-using NodeId = osmium::unsigned_object_id_type;
-using WayId = osmium::unsigned_object_id_type;
-
-inline bool eq(const char *lhs, const char *rhs) { return std::strcmp(lhs, rhs) == 0; }
+inline bool Equal(const char *lhs, const char *rhs) { return std::strcmp(lhs, rhs) == 0; }
 
 struct Committer {
   osmium::memory::Buffer &buffer;
@@ -33,7 +29,7 @@ struct Committer {
 };
 
 template <typename Builder> //
-inline void copyAttributes(Builder &builder, const osmium::OSMObject &object) {
+inline void Copy(Builder &builder, const osmium::OSMObject &object) {
   builder.set_id(object.id())
       .set_version(object.version())
       .set_changeset(object.changeset())
@@ -42,23 +38,23 @@ inline void copyAttributes(Builder &builder, const osmium::OSMObject &object) {
       .set_user(object.user());
 }
 
-inline void copyTagsAddDestination(osmium::builder::Builder &parent, const osmium::TagList &tags,
-                                   const std::string &destination) {
+inline void Extend(osmium::builder::Builder &parent, const osmium::TagList &tags, const char *key, const char *value) {
   osmium::builder::TagListBuilder builder{parent};
 
   for (const auto &tag : tags)
     builder.add_tag(tag);
 
-  builder.add_tag("destination", destination.c_str());
+  builder.add_tag(key, value);
 }
 
 // Collects node ids and exit_to=* tags on highway=motorway_junction.
 // http://wiki.openstreetmap.org/wiki/Key:exit_to
 // http://taginfo.openstreetmap.org/keys/exit_to
 struct ExitToRewriter : osmium::handler::Handler {
-  ExitToRewriter() {
-    nodesToDestination.reserve(35000); // max in Planet
-  }
+  static const constexpr auto kExitToTagsInPlanet = 35000u;
+  static const constexpr auto kBufferCapacityHint = 1u << 12u;
+
+  ExitToRewriter() { destinations.reserve(kExitToTagsInPlanet); }
 
   void node(const osmium::Node &node) {
     Committer defer{outbuf};
@@ -67,67 +63,60 @@ struct ExitToRewriter : osmium::handler::Handler {
     outbuf.add_item(node);
 
     // Record exit to node ids and values
-    {
-      const auto *highway = node.get_value_by_key("highway");
+    const auto *highway = node.get_value_by_key("highway");
 
-      if (!highway)
-        return;
+    if (!highway || !Equal("motorway_junction", highway))
+      return;
 
-      const auto *exitTo = node.get_value_by_key("exit_to");
+    const auto *exitTo = node.get_value_by_key("exit_to");
 
-      if (!exitTo)
-        return;
-
-      if (!eq("motorway_junction", highway))
-        return;
-
-      nodesToDestination.insert({node.positive_id(), std::string{exitTo}});
-    }
+    if (exitTo)
+      destinations.insert({node.positive_id(), std::string{exitTo}});
   }
 
   void way(const osmium::Way &way) {
     const auto &nodes = way.nodes();
 
     const auto *highway = way.get_value_by_key("highway");
-    const auto *oneway = way.get_value_by_key("oneway");
-    const auto *destination = way.get_value_by_key("destination");
-
-    const auto isOneway = oneway && (eq("yes", oneway) || //
-                                     eq("1", oneway) ||   //
-                                     eq("true", oneway)); //
-
-    const auto isReversed = isOneway && eq("-1", oneway);
 
     // http://wiki.openstreetmap.org/wiki/Key:highway#Link_roads
-    const auto isLink = highway && (eq("motorway_link", highway)      //
-                                    || eq("trunk_link", highway)      //
-                                    || eq("primary_link", highway)    //
-                                    || eq("secondary_link", highway)  //
-                                    || eq("tertiary_link", highway)); //
+    const auto isLink = highway && (Equal("motorway_link", highway)      //
+                                    || Equal("trunk_link", highway)      //
+                                    || Equal("primary_link", highway)    //
+                                    || Equal("secondary_link", highway)  //
+                                    || Equal("tertiary_link", highway)); //
 
+    const auto *oneway = way.get_value_by_key("oneway");
+    const auto isOneway = oneway && (Equal("yes", oneway) || //
+                                     Equal("1", oneway) ||   //
+                                     Equal("true", oneway)); //
+
+    const auto isReversed = isOneway && Equal("-1", oneway);
     const auto startNode = isReversed ? nodes.back().positive_ref() : nodes.front().positive_ref();
+
+    const auto hasDestination = way.get_value_by_key("destination") != nullptr;
 
     Committer defer{outbuf};
 
-    {
-      osmium::builder::WayBuilder builder{outbuf};
-      copyAttributes(builder, way);
+    // Copy over way attributes untouched
+    osmium::builder::WayBuilder builder{outbuf};
+    Copy(builder, way);
 
-      if (!destination && isLink && isOneway) {
-        auto it = nodesToDestination.find(startNode);
+    if (isLink && isOneway && !hasDestination) {
+      const auto it = destinations.find(startNode);
 
-        if (it != end(nodesToDestination)) {
-          copyTagsAddDestination(builder, way.tags(), it->second);
-          addedTags += 1;
-        } else {
-          builder.add_item(way.tags());
-        }
+      if (it != end(destinations)) {
+        Extend(builder, way.tags(), "destination", it->second.c_str());
+        added += 1;
       } else {
         builder.add_item(way.tags());
       }
-
-      builder.add_item(way.nodes());
+    } else {
+      builder.add_item(way.tags());
     }
+
+    // Copy over way nodes untouched
+    builder.add_item(way.nodes());
   }
 
   void relation(const osmium::Relation &relation) {
@@ -137,8 +126,10 @@ struct ExitToRewriter : osmium::handler::Handler {
     outbuf.add_item(relation);
   }
 
-  osmium::memory::Buffer getBuffer() {
-    osmium::memory::Buffer tmp{4096};
+  // We write and committ into a buffer; let the user grab the full buffer.
+  // Switch in an empty one for the next handler application.
+  osmium::memory::Buffer buffer() {
+    osmium::memory::Buffer tmp{kBufferCapacityHint};
 
     using std::swap;
     swap(tmp, outbuf);
@@ -146,9 +137,16 @@ struct ExitToRewriter : osmium::handler::Handler {
     return tmp;
   }
 
-  std::size_t addedTags = 0;
-  osmium::memory::Buffer outbuf{4096};
-  std::unordered_map<NodeId, std::string> nodesToDestination;
+  // Number of destination way tags added.
+  std::size_t added = 0;
+
+private:
+  osmium::memory::Buffer outbuf{kBufferCapacityHint};
+
+  using NodeId = osmium::unsigned_object_id_type;
+  using Value = std::string;
+
+  std::unordered_map<NodeId, Value> destinations;
 };
 
 int main(int argc, char **argv) try {
@@ -163,18 +161,18 @@ int main(int argc, char **argv) try {
   osmium::io::Reader reader{infile};
   osmium::io::Writer writer{outfile};
 
-  ExitToRewriter rewriter;
+  ExitToRewriter xform;
 
   while (const auto inbuf = reader.read()) {
-    osmium::apply(inbuf, rewriter);
+    osmium::apply(inbuf, xform);
 
-    writer(rewriter.getBuffer());
+    writer(xform.buffer());
   }
 
   writer.close();
   reader.close();
 
-  std::fprintf(stdout, "Ok: added %zu destination tags\n", rewriter.addedTags);
+  std::fprintf(stdout, "Ok: added %zu destination tags\n", xform.added);
 
 } catch (const std::exception &e) {
   std::fprintf(stderr, "Error: %s\n", e.what());
