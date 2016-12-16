@@ -27,6 +27,11 @@ using WayId = osmium::unsigned_object_id_type;
 
 inline bool eq(const char *lhs, const char *rhs) { return std::strcmp(lhs, rhs) == 0; }
 
+struct Committer {
+  osmium::memory::Buffer &buffer;
+  ~Committer() noexcept { buffer.commit(); }
+};
+
 template <typename Builder> //
 inline void copyAttributes(Builder &builder, const osmium::OSMObject &object) {
   builder.set_id(object.id())
@@ -36,8 +41,6 @@ inline void copyAttributes(Builder &builder, const osmium::OSMObject &object) {
       .set_uid(object.uid())
       .set_user(object.user());
 }
-
-inline void copyTags(osmium::builder::Builder &parent, const osmium::TagList &tags) { parent.add_item(tags); }
 
 inline void copyTagsAddDestination(osmium::builder::Builder &parent, const osmium::TagList &tags,
                                    const std::string &destination) {
@@ -58,9 +61,10 @@ struct ExitToRewriter : osmium::handler::Handler {
   }
 
   void node(const osmium::Node &node) {
+    Committer defer{outbuf};
+
     // Copy over node data untouched
     outbuf.add_item(node);
-    outbuf.commit();
 
     // Record exit to node ids and values
     {
@@ -103,6 +107,8 @@ struct ExitToRewriter : osmium::handler::Handler {
 
     const auto startNode = isReversed ? nodes.back().positive_ref() : nodes.front().positive_ref();
 
+    Committer defer{outbuf};
+
     {
       osmium::builder::WayBuilder builder{outbuf};
       copyAttributes(builder, way);
@@ -114,22 +120,21 @@ struct ExitToRewriter : osmium::handler::Handler {
           copyTagsAddDestination(builder, way.tags(), it->second);
           addedTags += 1;
         } else {
-          copyTags(builder, way.tags());
+          builder.add_item(way.tags());
         }
       } else {
-        copyTags(builder, way.tags());
+        builder.add_item(way.tags());
       }
 
       builder.add_item(way.nodes());
     }
-
-    outbuf.commit();
   }
 
   void relation(const osmium::Relation &relation) {
+    Committer defer{outbuf};
+
     // Copy over relation data untouched
     outbuf.add_item(relation);
-    outbuf.commit();
   }
 
   osmium::memory::Buffer getBuffer() {
