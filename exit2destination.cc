@@ -25,6 +25,8 @@
 using NodeId = osmium::unsigned_object_id_type;
 using WayId = osmium::unsigned_object_id_type;
 
+inline bool eq(const char *lhs, const char *rhs) { return std::strcmp(lhs, rhs) == 0; }
+
 template <typename Builder> //
 inline void copyAttributes(Builder &builder, const osmium::OSMObject &object) {
   builder.set_id(object.id())
@@ -72,9 +74,7 @@ struct ExitToRewriter : osmium::handler::Handler {
       if (!exitTo)
         return;
 
-      const auto isJunction = std::strcmp("motorway_junction", highway) == 0;
-
-      if (!isJunction)
+      if (!eq("motorway_junction", highway))
         return;
 
       nodesToDestination.insert({node.positive_id(), std::string{exitTo}});
@@ -88,18 +88,18 @@ struct ExitToRewriter : osmium::handler::Handler {
     const auto *oneway = way.get_value_by_key("oneway");
     const auto *destination = way.get_value_by_key("destination");
 
-    const auto isOneway = oneway && (std::strcmp("yes", oneway) == 0 || //
-                                     std::strcmp("1", oneway) == 0 ||   //
-                                     std::strcmp("true", oneway) == 0); //
+    const auto isOneway = oneway && (eq("yes", oneway) || //
+                                     eq("1", oneway) ||   //
+                                     eq("true", oneway)); //
 
-    const auto isReversed = isOneway && std::strcmp("-1", oneway) == 0;
+    const auto isReversed = isOneway && eq("-1", oneway);
 
     // http://wiki.openstreetmap.org/wiki/Key:highway#Link_roads
-    const auto isLink = highway && (std::strcmp("motorway_link", highway) == 0      //
-                                    || std::strcmp("trunk_link", highway) == 0      //
-                                    || std::strcmp("primary_link", highway) == 0    //
-                                    || std::strcmp("secondary_link", highway) == 0  //
-                                    || std::strcmp("tertiary_link", highway) == 0); //
+    const auto isLink = highway && (eq("motorway_link", highway)      //
+                                    || eq("trunk_link", highway)      //
+                                    || eq("primary_link", highway)    //
+                                    || eq("secondary_link", highway)  //
+                                    || eq("tertiary_link", highway)); //
 
     const auto startNode = isReversed ? nodes.back().positive_ref() : nodes.front().positive_ref();
 
