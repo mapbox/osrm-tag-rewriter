@@ -3,7 +3,7 @@ project(exit2destination LANGUAGES C CXX)
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -pedantic -std=c++11")
 
-find_package(Boost REQUIRED)
+#find_package(Boost REQUIRED)
 find_package(Threads REQUIRED)
 
 # Vendored Libosmium
@@ -29,5 +29,5 @@ find_package(ZLIB REQUIRED)
 include_directories(${ZLIB_INCLUDE_DIRS})
 
 add_executable(${PROJECT_NAME} ${PROJECT_NAME}.cc)
-target_link_libraries(${PROJECT_NAME} ${OSMIUM_LIBRARIES} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${ZLIB_LIBRARY})
-target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${OSMIUM_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} ${OSMIUM_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${ZLIB_LIBRARY})
+target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${OSMIUM_INCLUDE_DIRS})
