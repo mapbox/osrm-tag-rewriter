@@ -10,8 +10,14 @@ find_package(Threads REQUIRED)
 if (ENABLE_MASON)
     set(MASON_COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/.mason/mason)
     include(${CMAKE_CURRENT_SOURCE_DIR}/.mason/mason.cmake)
-    mason_use(protozero VERSION 1.4.2)
-    mason_use(zlib VERSION 1.2.8)
+
+    mason_use(libosmium VERSION 2.10.3 HEADER_ONLY)
+    include_directories(${MASON_PACKAGE_libosmium_INCLUDE_DIRS})
+    set(OSMIUM_INCLUDE_DIRS ${MASON_PACKAGE_libosmium_INCLUDE_DIRS})
+
+    mason_use(protozero VERSION 1.4.2 HEADER_ONLY)
+    include_directories(${MASON_PACKAGE_protozero_INCLUDE_DIRS})
+    set(PROTOZERO_INCLUDE_DIRS ${MASON_PACKAGE_protozero_INCLUDE_DIRS})
 else()
     # expects a vendored libosmium at /third_party
     list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/third_party/libosmium/cmake")
@@ -19,6 +25,9 @@ else()
     find_package(Osmium)
 endif()
 
+find_package(ZLIB REQUIRED)
+include_directories(${ZLIB_INCLUDE_DIRS})
+
 add_executable(${PROJECT_NAME} ${PROJECT_NAME}.cc)
-target_link_libraries(${PROJECT_NAME} ${OSMIUM_LIBRARIES} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(${PROJECT_NAME} ${OSMIUM_LIBRARIES} ${Boost_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${ZLIB_LIBRARY})
 target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${OSMIUM_INCLUDE_DIRS} ${Boost_INCLUDE_DIRS})
