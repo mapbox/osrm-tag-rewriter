@@ -40,7 +40,7 @@ else()
     # cmake files that find required dependencies in the system
     list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/third_party/libosmium/cmake")
     set(OSMIUM_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/libosmium/include")
-    find_package(Osmium REQUIRED COMPONENTS io)
+    find_package(Osmium REQUIRED COMPONENTS pbf xml)
 
     add_executable(${PROJECT_NAME} main.cc)
     target_link_libraries(${PROJECT_NAME} ${OSMIUM_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
