@@ -22,6 +22,14 @@ A recent libosmium is getting downloaded to `third_party` by invoking the `./dep
 
     ./exit2destination in.osm.pbf out.osm.pbf
 
+## Tests
+
+See the `tests` directory.
+
+    pushd tests
+    ./check.sh
+    popd
+
 ## License
 
 Copyright © 2016 Mapbox
