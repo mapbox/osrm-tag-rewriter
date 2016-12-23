@@ -2,8 +2,8 @@
 #include <cstdlib>
 #include <utility>
 
-#include <osmium/io/pbf_input.hpp>
-#include <osmium/io/pbf_output.hpp>
+#include <osmium/io/any_input.hpp>
+#include <osmium/io/any_output.hpp>
 #include <osmium/io/reader.hpp>
 #include <osmium/io/writer.hpp>
 #include <osmium/visitor.hpp>

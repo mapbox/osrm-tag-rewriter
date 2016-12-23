@@ -18,12 +18,20 @@ if (ENABLE_MASON)
     include_directories(${MASON_PACKAGE_protozero_INCLUDE_DIRS})
     set(PROTOZERO_INCLUDE_DIRS ${MASON_PACKAGE_protozero_INCLUDE_DIRS})
 
+    mason_use(expat VERSION 2.2.0)
+    include_directoriess(${MASON_PACKAGE_expat_INCLUDE_DIRS})
+    set(EXPAT_LIBRARIES ${MASON_PACKAGE_expat_STATIC_LIBS})
+
+    mason_use(bzip2 VERSION 1.0.6)
+    include_directories(${MASON_PACKAGE_bzip2_INCLUDE_DIRS})
+    set(BZIP2_LIBRARIES ${MASON_PACKAGE_bzip2_STATIC_LIBS})
+
     # use system zlib, mason zlib does not work with libosmium
     find_package(ZLIB REQUIRED)
     include_directories(${ZLIB_INCLUDE_DIRS})
 
     add_executable(${PROJECT_NAME} main.cc)
-    target_link_libraries(${PROJECT_NAME} ${OSMIUM_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${ZLIB_LIBRARY})
+    target_link_libraries(${PROJECT_NAME} ${OSMIUM_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${ZLIB_LIBRARY} ${EXPAT_LIBRARIES} ${BZIP2_LIBRARIES})
     target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${OSMIUM_INCLUDE_DIRS})
 else()
     # expects a vendored libosmium at /third_party
@@ -32,7 +40,7 @@ else()
     # cmake files that find required dependencies in the system
     list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/third_party/libosmium/cmake")
     set(OSMIUM_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/libosmium/include")
-    find_package(Osmium REQUIRED COMPONENTS pbf)
+    find_package(Osmium REQUIRED COMPONENTS io)
 
     add_executable(${PROJECT_NAME} main.cc)
     target_link_libraries(${PROJECT_NAME} ${OSMIUM_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
