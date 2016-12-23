@@ -22,7 +22,7 @@ if (ENABLE_MASON)
     find_package(ZLIB REQUIRED)
     include_directories(${ZLIB_INCLUDE_DIRS})
 
-    add_executable(${PROJECT_NAME} ${PROJECT_NAME}.cc)
+    add_executable(${PROJECT_NAME} main.cc)
     target_link_libraries(${PROJECT_NAME} ${OSMIUM_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${ZLIB_LIBRARY})
     target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${OSMIUM_INCLUDE_DIRS})
 else()
@@ -34,8 +34,7 @@ else()
     set(OSMIUM_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/libosmium/include")
     find_package(Osmium REQUIRED COMPONENTS pbf)
 
-    add_executable(${PROJECT_NAME} ${PROJECT_NAME}.cc)
+    add_executable(${PROJECT_NAME} main.cc)
     target_link_libraries(${PROJECT_NAME} ${OSMIUM_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
     target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${OSMIUM_INCLUDE_DIRS})
 endif()
-

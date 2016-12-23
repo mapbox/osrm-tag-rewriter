@@ -1,19 +1,15 @@
+#pragma once
+
 #include <cstdlib>
 #include <cstring>
 
-#include <iterator>
 #include <string>
 #include <unordered_map>
 #include <utility>
 
 #include <osmium/builder/osm_object_builder.hpp>
 #include <osmium/handler.hpp>
-#include <osmium/io/pbf_input.hpp>
-#include <osmium/io/pbf_output.hpp>
-#include <osmium/io/reader.hpp>
-#include <osmium/io/writer.hpp>
 #include <osmium/osm/types.hpp>
-#include <osmium/visitor.hpp>
 
 // Ideas for Improvement:
 //  - In the way() function exit early when not highway
@@ -148,33 +144,3 @@ private:
 
   std::unordered_map<NodeId, Value> destinations;
 };
-
-int main(int argc, char **argv) try {
-  if (argc != 3) {
-    std::fprintf(stderr, "Usage: %s in.osm.pbf out.osm.pbf\n", argv[0]);
-    return EXIT_FAILURE;
-  }
-
-  osmium::io::File infile{argv[1]};
-  osmium::io::File outfile{argv[2]};
-
-  osmium::io::Reader reader{infile};
-  osmium::io::Writer writer{outfile};
-
-  ExitToRewriter xform;
-
-  while (const auto inbuf = reader.read()) {
-    osmium::apply(inbuf, xform);
-
-    writer(xform.buffer());
-  }
-
-  writer.close();
-  reader.close();
-
-  std::fprintf(stdout, "Ok: added %zu destination tags\n", xform.added);
-
-} catch (const std::exception &e) {
-  std::fprintf(stderr, "Error: %s\n", e.what());
-  return EXIT_FAILURE;
-}
