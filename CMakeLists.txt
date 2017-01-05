@@ -19,7 +19,7 @@ if (ENABLE_MASON)
     set(PROTOZERO_INCLUDE_DIRS ${MASON_PACKAGE_protozero_INCLUDE_DIRS})
 
     mason_use(expat VERSION 2.2.0)
-    include_directoriess(${MASON_PACKAGE_expat_INCLUDE_DIRS})
+    include_directories(${MASON_PACKAGE_expat_INCLUDE_DIRS})
     set(EXPAT_LIBRARIES ${MASON_PACKAGE_expat_STATIC_LIBS})
 
     mason_use(bzip2 VERSION 1.0.6)
