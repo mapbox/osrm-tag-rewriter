@@ -2,7 +2,7 @@
 #include <cstdlib>
 #include <utility>
 
-#include <osmium/io/pbf_output.hpp>
+#include <osmium/io/pbf_input.hpp>
 #include <osmium/io/pbf_output.hpp>
 #include <osmium/io/reader.hpp>
 #include <osmium/io/writer.hpp>
