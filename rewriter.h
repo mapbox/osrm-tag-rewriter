@@ -10,6 +10,9 @@
 #include <osmium/builder/osm_object_builder.hpp>
 #include <osmium/handler.hpp>
 #include <osmium/osm/types.hpp>
+#include <osmium/tags/taglist.hpp>
+#include <osmium/tags/tags_filter.hpp>
+#include <osmium/util/string_matcher.hpp>
 
 // Ideas for Improvement:
 //  - In the way() function exit early when not highway
@@ -90,7 +93,12 @@ struct ExitToRewriter : osmium::handler::Handler {
     const auto isReversed = isOneway && Equal("-1", oneway);
     const auto startNode = isReversed ? nodes.back().positive_ref() : nodes.front().positive_ref();
 
-    const auto hasDestination = way.get_value_by_key("destination") != nullptr;
+    // Do not re-write if there are "destination*" tags already present
+    osmium::TagsFilter destinationFilter;
+    osmium::TagMatcher destinationMatcher{osmium::StringMatcher::prefix{"destination"}};
+    destinationFilter.add_rule(true, destinationMatcher);
+
+    const auto hasDestination = osmium::tags::match_any_of(way.tags(), destinationFilter);
 
     Committer defer{outbuf};
 

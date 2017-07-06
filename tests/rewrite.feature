@@ -134,3 +134,23 @@ Feature: Rewrites ExitTo Node Tags to Destination Way tags
        When I route I should get
             | waypoints | route    |
             | a,c       | ab,bc,bc |
+
+    Scenario: Destination ref tag already present
+        Given the node map
+            """
+            a . . . b . . d .
+                      ` . c .
+            """
+
+       And the nodes
+            | node | highway           | exit_to |
+            | b    | motorway_junction | ExitC   |
+
+        And the ways
+            | nodes | highway       | oneway | destination:ref |
+            | abd   | motorway      |        |                 |
+            | bc    | motorway_link | yes    | DestinationC    |
+
+       When I route I should get
+            | waypoints | route    |
+            | a,c       | ab,bc,bc |
