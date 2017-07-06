@@ -11,24 +11,24 @@ matrix:
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test']
-          packages: ['g++-6', 'cmake', 'realpath', 'libbz2-dev', 'zlib1g-dev', 'libexpat1-dev']
+          packages: ['g++-7', 'cmake', 'realpath', 'libbz2-dev', 'zlib1g-dev', 'libexpat1-dev', 'libboost-all-dev']
+      env: CCOMPILER='gcc-7' CXXCOMPILER='g++-7'
+
+    - os: linux
+      addons:
+        apt:
+          sources: ['ubuntu-toolchain-r-test']
+          packages: ['g++-6', 'cmake', 'realpath', 'libbz2-dev', 'zlib1g-dev', 'libexpat1-dev', 'libboost-all-dev']
       env: CCOMPILER='gcc-6' CXXCOMPILER='g++-6'
 
     - os: linux
       addons:
         apt:
           sources: ['ubuntu-toolchain-r-test']
-          packages: ['g++-5', 'cmake', 'realpath', 'libbz2-dev', 'zlib1g-dev', 'libexpat1-dev']
+          packages: ['g++-5', 'cmake', 'realpath', 'libbz2-dev', 'zlib1g-dev', 'libexpat1-dev', 'libboost-all-dev']
       env: CCOMPILER='gcc-5' CXXCOMPILER='g++-5'
 
-    - os: linux
-      addons:
-        apt:
-          sources: ['llvm-toolchain-precise-3.8']
-          packages: ['clang-3.8', 'cmake', 'realpath', 'libbz2-dev', 'zlib1g-dev', 'libexpat1-dev']
-      env: CCOMPILER='clang-3.8' CXXCOMPILER='clang++-3.8'
-
-    # Waiting on Travis whitelisting 3.9, see https://github.com/travis-ci/apt-source-whitelist/issues/300
+    # Waiting on Travis whitelisting clang-4.0
 
 
 before_install:
