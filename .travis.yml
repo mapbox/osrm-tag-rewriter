@@ -41,6 +41,14 @@ install:
   - cmake .. -DCMAKE_BUILD_TYPE=Release
   - cmake --build .
   - popd
+  # In addition test the mason build
+  - rm -rf build third_party
+  - ./masonize.sh
+  - mkdir build
+  - pushd build
+  - cmake .. -DCMAKE_BUILD_TYPE=Release -DENABLE_MASON=On
+  - cmake --build .
+  - popd
 
 script:
   - pushd tests

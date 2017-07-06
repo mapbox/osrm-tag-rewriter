@@ -16,7 +16,11 @@ if (ENABLE_MASON)
 
     mason_use(utfcpp VERSION 2.3.4 HEADER_ONLY)
     include_directories(${MASON_PACKAGE_utfcpp_INCLUDE_DIRS})
-    set(PROTOZERO_INCLUDE_DIRS ${MASON_PACKAGE_utfcpp_INCLUDE_DIRS})
+    set(UTFCPP_INCLUDE_DIRS ${MASON_PACKAGE_utfcpp_INCLUDE_DIRS})
+
+    mason_use(boost VERSION 1.63.0 HEADER_ONLY)
+    include_directories(${MASON_PACKAGE_boost_INCLUDE_DIRS})
+    set(BOOST_INCLUDE_DIRS ${MASON_PACKAGE_boost_INCLUDE_DIRS})
 
     mason_use(protozero VERSION 1.5.2 HEADER_ONLY)
     include_directories(${MASON_PACKAGE_protozero_INCLUDE_DIRS})
@@ -36,7 +40,7 @@ if (ENABLE_MASON)
 
     add_executable(${PROJECT_NAME} main.cc)
     target_link_libraries(${PROJECT_NAME} ${OSMIUM_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${ZLIB_LIBRARY} ${EXPAT_LIBRARIES} ${BZIP2_LIBRARIES})
-    target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${OSMIUM_INCLUDE_DIRS})
+    target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${OSMIUM_INCLUDE_DIRS} ${UTFCPP_INCLUDE_DIRS} ${BOOST_INCLUDE_DIRS})
 else()
     # expects a vendored libosmium at /third_party
     # explicit inclusion of protozero and zlib dependencies are not required
