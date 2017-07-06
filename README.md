@@ -18,6 +18,15 @@ A recent libosmium is getting downloaded to `third_party` by invoking the `./dep
     cmake .. -DCMAKE_BUILD_TYPE=Release
     cmake --build .
 
+## Using Mason
+
+You can build this project using packages bundled with mason:
+
+    ./masonize.sh
+    mkdir build && cd build
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DENABLE_MASON=On
+    cmake --build .
+
 ## Running
 
     ./exit2destination in.osm.pbf out.osm.pbf

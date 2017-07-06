@@ -1,3 +1,5 @@
 build
 third_party
 *_rewritten.osm
+.mason
+mason_packages

@@ -10,11 +10,15 @@ if (ENABLE_MASON)
     set(MASON_COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/.mason/mason)
     include(${CMAKE_CURRENT_SOURCE_DIR}/.mason/mason.cmake)
 
-    mason_use(libosmium VERSION 2.10.3 HEADER_ONLY)
+    mason_use(libosmium VERSION 2.12.2 HEADER_ONLY)
     include_directories(${MASON_PACKAGE_libosmium_INCLUDE_DIRS})
     set(OSMIUM_INCLUDE_DIRS ${MASON_PACKAGE_libosmium_INCLUDE_DIRS})
 
-    mason_use(protozero VERSION 1.4.2 HEADER_ONLY)
+    mason_use(utfcpp VERSION 2.3.4 HEADER_ONLY)
+    include_directories(${MASON_PACKAGE_utfcpp_INCLUDE_DIRS})
+    set(PROTOZERO_INCLUDE_DIRS ${MASON_PACKAGE_utfcpp_INCLUDE_DIRS})
+
+    mason_use(protozero VERSION 1.5.2 HEADER_ONLY)
     include_directories(${MASON_PACKAGE_protozero_INCLUDE_DIRS})
     set(PROTOZERO_INCLUDE_DIRS ${MASON_PACKAGE_protozero_INCLUDE_DIRS})
 
@@ -26,9 +30,9 @@ if (ENABLE_MASON)
     include_directories(${MASON_PACKAGE_bzip2_INCLUDE_DIRS})
     set(BZIP2_LIBRARIES ${MASON_PACKAGE_bzip2_STATIC_LIBS})
 
-    # use system zlib, mason zlib does not work with libosmium
-    find_package(ZLIB REQUIRED)
-    include_directories(${ZLIB_INCLUDE_DIRS})
+    mason_use(zlib VERSION 1.2.8)
+    include_directories(${MASON_PACKAGE_zlib_INCLUDE_DIRS})
+    set(ZLIB_LIBRARY ${MASON_PACKAGE_zlib_STATIC_LIBS})
 
     add_executable(${PROJECT_NAME} main.cc)
     target_link_libraries(${PROJECT_NAME} ${OSMIUM_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${ZLIB_LIBRARY} ${EXPAT_LIBRARIES} ${BZIP2_LIBRARIES})
