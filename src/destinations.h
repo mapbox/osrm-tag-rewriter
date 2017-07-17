@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdlib>
-#include <cstring>
 
 #include <string>
 #include <unordered_map>
@@ -14,46 +13,16 @@
 #include <osmium/tags/tags_filter.hpp>
 #include <osmium/util/string_matcher.hpp>
 
-// Ideas for Improvement:
-//  - In the way() function exit early when not highway
-//  - Inject output buffer size hint based on input buffer .committed() + expected destination tag length
-//  - Handle ref and other tags on the motorway junction node in the same way (check first if worth it)
-//  - Combine with planet pre-filtering: think filtering relations other than turn restrictions, buildings, trees
-
-inline bool Equal(const char *lhs, const char *rhs) { return std::strcmp(lhs, rhs) == 0; }
-
-struct Committer {
-  osmium::memory::Buffer &buffer;
-  ~Committer() noexcept { buffer.commit(); }
-};
-
-template <typename Builder> //
-inline void Copy(Builder &builder, const osmium::OSMObject &object) {
-  builder.set_id(object.id())
-      .set_version(object.version())
-      .set_changeset(object.changeset())
-      .set_timestamp(object.timestamp())
-      .set_uid(object.uid())
-      .set_user(object.user());
-}
-
-inline void Extend(osmium::builder::Builder &parent, const osmium::TagList &tags, const char *key, const char *value) {
-  osmium::builder::TagListBuilder builder{parent};
-
-  for (const auto &tag : tags)
-    builder.add_tag(tag);
-
-  builder.add_tag(key, value);
-}
+#include "util.h"
 
 // Collects node ids and exit_to=* tags on highway=motorway_junction.
 // http://wiki.openstreetmap.org/wiki/Key:exit_to
 // http://taginfo.openstreetmap.org/keys/exit_to
-struct ExitToRewriter : osmium::handler::Handler {
+struct DestinationsRewriter : osmium::handler::Handler {
   static const constexpr auto kExitToTagsInPlanet = 35000u;
   static const constexpr auto kBufferCapacityHint = 1u << 12u;
 
-  ExitToRewriter() { destinations.reserve(kExitToTagsInPlanet); }
+  DestinationsRewriter() { destinations.reserve(kExitToTagsInPlanet); }
 
   void node(const osmium::Node &node) {
     Committer defer{outbuf};
@@ -86,9 +55,10 @@ struct ExitToRewriter : osmium::handler::Handler {
                                     || Equal("tertiary_link", highway)); //
 
     const auto *oneway = way.get_value_by_key("oneway");
-    const auto isOneway = oneway && (Equal("yes", oneway) || //
-                                     Equal("1", oneway) ||   //
-                                     Equal("true", oneway)); //
+    const auto isOneway = oneway && (Equal("yes", oneway) ||  //
+                                     Equal("1", oneway) ||    //
+                                     Equal("true", oneway) || //
+                                     Equal("-1", oneway));    //
 
     const auto isReversed = isOneway && Equal("-1", oneway);
     const auto startNode = isReversed ? nodes.back().positive_ref() : nodes.front().positive_ref();

@@ -6,7 +6,8 @@
   <node id="2" version="1" uid="1" user="osrm" timestamp="2000-01-01T00:00:00Z" lon="1.0007192543490164" lat="1.0">
     <tag k="name" v="b"/>
     <tag k="highway" v="motorway_junction"/>
-    <tag k="exit_to" v="ExitC"/>
+    <tag k="exit_to" v="A"/>
+    <tag k="ref" v="2"/>
   </node>
   <node id="3" version="1" uid="1" user="osrm" timestamp="2000-01-01T00:00:00Z" lon="1.0012586951107787" lat="1.0">
     <tag k="name" v="d"/>
@@ -20,7 +21,6 @@
     <nd ref="3"/>
     <tag k="highway" v="motorway"/>
     <tag k="oneway" v=""/>
-    <tag k="destination" v=""/>
     <tag k="name" v="abd"/>
   </way>
   <way id="6" version="1" uid="1" user="osrm" timestamp="2000-01-01T00:00:00Z">
@@ -28,7 +28,6 @@
     <nd ref="4"/>
     <tag k="highway" v="motorway_link"/>
     <tag k="oneway" v="yes"/>
-    <tag k="destination" v="DestinationC"/>
     <tag k="name" v="bc"/>
   </way>
 </osm>

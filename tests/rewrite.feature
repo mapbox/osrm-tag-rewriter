@@ -1,7 +1,4 @@
-Feature: Rewrites ExitTo Node Tags to Destination Way tags
-# `exit_to=` is tagged on nodes in combination with the `highway=motorway_junction` tag.
-# - http://wiki.openstreetmap.org/wiki/Key:exit_to
-# - https://wiki.openstreetmap.org/wiki/Tag:highway%3Dmotorway_junction
+Feature: Tag Rewriter Tests
 
     Background:
         Given the profile "car"
@@ -16,8 +13,8 @@ Feature: Rewrites ExitTo Node Tags to Destination Way tags
             """
 
        And the nodes
-            | node | highway           | exit_to |
-            | b    | motorway_junction | ExitC   |
+            | node | highway           | exit_to | ref |
+            | b    | motorway_junction | A       | 2   |
 
         And the ways
             | nodes | highway       | oneway |
@@ -38,8 +35,8 @@ Feature: Rewrites ExitTo Node Tags to Destination Way tags
             """
 
        And the nodes
-            | node | highway           | exit_to:left | exit_to:right |
-            | b    | motorway_junction | ExitC        | ExitD         |
+            | node | highway           | exit_to:left | exit_to:right | ref:left | ref:right |
+            | b    | motorway_junction | A            | B             |        2 |         3 |
 
         And the ways
             | nodes | highway       | oneway |
@@ -60,8 +57,8 @@ Feature: Rewrites ExitTo Node Tags to Destination Way tags
             """
 
        And the nodes
-            | node | highway           | exit_to |
-            | b    |                   | ExitC   |
+            | node | highway | exit_to | ref |
+            | b    |         | A       |   2 |
 
         And the ways
             | nodes | highway       | oneway |
@@ -81,8 +78,8 @@ Feature: Rewrites ExitTo Node Tags to Destination Way tags
             """
 
        And the nodes
-            | node | highway           | exit_to |
-            | b    | motorway_junction | ExitC   |
+            | node | highway           | exit_to | ref |
+            | b    | motorway_junction |       A |   2 |
 
         And the ways
             | nodes | highway       | oneway |
@@ -102,8 +99,8 @@ Feature: Rewrites ExitTo Node Tags to Destination Way tags
             """
 
        And the nodes
-            | node | highway           | exit_to |
-            | b    | motorway_junction | ExitC   |
+            | node | highway           | exit_to | ref |
+            | b    | motorway_junction |      A  |   2 |
 
         And the ways
             | nodes | highway       | oneway |
@@ -115,7 +112,7 @@ Feature: Rewrites ExitTo Node Tags to Destination Way tags
             | a,c       | ab,bc,bc |
 
 
-    Scenario: Destination tag already present
+    Scenario: Tag already present
         Given the node map
             """
             a . . . b . . d .
@@ -123,19 +120,20 @@ Feature: Rewrites ExitTo Node Tags to Destination Way tags
             """
 
        And the nodes
-            | node | highway           | exit_to |
-            | b    | motorway_junction | ExitC   |
+            | node | highway           | exit_to | ref |
+            | b    | motorway_junction |       A |   2 |
 
         And the ways
-            | nodes | highway       | oneway | destination  |
-            | abd   | motorway      |        |              |
-            | bc    | motorway_link | yes    | DestinationC |
+            | nodes | highway       | oneway | destination  | junction:ref |
+            | abd   | motorway      |        |              |              |
+            | bc    | motorway_link | yes    |            B |            2 |
 
        When I route I should get
             | waypoints | route    |
             | a,c       | ab,bc,bc |
 
-    Scenario: Destination ref tag already present
+
+    Scenario: Ref tag already present
         Given the node map
             """
             a . . . b . . d .
@@ -143,14 +141,15 @@ Feature: Rewrites ExitTo Node Tags to Destination Way tags
             """
 
        And the nodes
-            | node | highway           | exit_to |
-            | b    | motorway_junction | ExitC   |
+            | node | highway           | exit_to | ref |
+            | b    | motorway_junction |       A |   2 |
 
         And the ways
-            | nodes | highway       | oneway | destination:ref |
-            | abd   | motorway      |        |                 |
-            | bc    | motorway_link | yes    | DestinationC    |
+            | nodes | highway       | oneway | destination:ref | junction:ref |
+            | abd   | motorway      |        |                 |              |
+            | bc    | motorway_link | yes    |               B |            3 |
 
        When I route I should get
             | waypoints | route    |
             | a,c       | ab,bc,bc |
+

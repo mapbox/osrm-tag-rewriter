@@ -38,11 +38,12 @@ if (ENABLE_MASON)
     include_directories(${MASON_PACKAGE_zlib_INCLUDE_DIRS})
     set(ZLIB_LIBRARY ${MASON_PACKAGE_zlib_STATIC_LIBS})
 
-    add_executable(${PROJECT_NAME} main.cc)
+    add_executable(${PROJECT_NAME} src/main.cc)
+    target_include_directories(${PROJECT_NAME} PRIVATE src)
     target_link_libraries(${PROJECT_NAME} ${OSMIUM_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} ${ZLIB_LIBRARY} ${EXPAT_LIBRARIES} ${BZIP2_LIBRARIES})
     target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${OSMIUM_INCLUDE_DIRS} ${UTFCPP_INCLUDE_DIRS} ${BOOST_INCLUDE_DIRS})
 else()
-    # expects a vendored libosmium at /third_party
+    # expects a vendored libosmium at /third_party (invoke ./deps.sh)
     # explicit inclusion of protozero and zlib dependencies are not required
     # if libosmium is vendored. The find_package(Osmium) call calls libosmium's
     # cmake files that find required dependencies in the system
@@ -50,7 +51,8 @@ else()
     set(OSMIUM_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/third_party/libosmium/include")
     find_package(Osmium REQUIRED COMPONENTS pbf xml)
 
-    add_executable(${PROJECT_NAME} main.cc)
+    add_executable(${PROJECT_NAME} src/main.cc)
+    target_include_directories(${PROJECT_NAME} PRIVATE src)
     target_link_libraries(${PROJECT_NAME} ${OSMIUM_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
     target_include_directories(${PROJECT_NAME} SYSTEM PRIVATE ${OSMIUM_INCLUDE_DIRS})
 endif()

@@ -10,7 +10,8 @@
 #include <osmium/io/xml_output.hpp>
 #include <osmium/visitor.hpp>
 
-#include "rewriter.h"
+#include "destinations.h"
+#include "exits.h"
 
 int main(int argc, char **argv) try {
   if (argc != 3) {
@@ -24,12 +25,17 @@ int main(int argc, char **argv) try {
   osmium::io::Reader reader{infile};
   osmium::io::Writer writer{outfile};
 
-  ExitToRewriter xform;
+  DestinationsRewriter destinationsRewriter;
+  ExitsRewriter exitsRewriter;
 
   while (const auto inbuf = reader.read()) {
-    osmium::apply(inbuf, xform);
+    // Todo: refactor as n-stages pipeline with passes enabled/disabled from cmdline
 
-    auto outbuf = xform.buffer();
+    osmium::apply(inbuf, destinationsRewriter);
+    auto tmpbuf = destinationsRewriter.buffer();
+
+    osmium::apply(tmpbuf, exitsRewriter);
+    auto outbuf = exitsRewriter.buffer();
 
     writer(std::move(outbuf));
   }
@@ -37,7 +43,8 @@ int main(int argc, char **argv) try {
   writer.close();
   reader.close();
 
-  std::fprintf(stdout, "Ok: added %zu destination tags\n", xform.added);
+  std::fprintf(stdout, "Ok: added %zu destination tags\n", destinationsRewriter.added);
+  std::fprintf(stdout, "Ok: added %zu junction:ref tags\n", exitsRewriter.added);
 
 } catch (const std::exception &e) {
   std::fprintf(stderr, "Error: %s\n", e.what());

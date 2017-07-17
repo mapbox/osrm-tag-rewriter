@@ -9,8 +9,10 @@
   <node id="3" version="1" uid="1" user="osrm" timestamp="2000-01-01T00:00:00Z" lon="1.0007192543490164" lat="0.999820186412746">
     <tag k="name" v="b"/>
     <tag k="highway" v="motorway_junction"/>
-    <tag k="exit_to:left" v="ExitC"/>
-    <tag k="exit_to:right" v="ExitD"/>
+    <tag k="exit_to:left" v="A"/>
+    <tag k="exit_to:right" v="B"/>
+    <tag k="ref:left" v="2"/>
+    <tag k="ref:right" v="3"/>
   </node>
   <node id="4" version="1" uid="1" user="osrm" timestamp="2000-01-01T00:00:00Z" lon="1.0012586951107787" lat="0.9996403728254918">
     <tag k="name" v="c"/>
