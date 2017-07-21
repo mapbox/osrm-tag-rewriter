@@ -37,6 +37,14 @@ struct DestinationsRewriter : osmium::handler::Handler {
       return;
 
     const auto *exitTo = node.get_value_by_key("exit_to");
+    const auto *exitToLeft = node.get_value_by_key("exit_to:left");
+    const auto *exitToRight = node.get_value_by_key("exit_to:right");
+
+    // There is an edge case where users tag not only `exit_to` but also
+    // `exit_to:left` and `exit_to:right`. In this case re-writing only
+    // the `exit_to` tag is always wrong - see #10. Bail out for now.
+    if (exitTo && (exitToLeft || exitToRight))
+      return;
 
     if (exitTo)
       destinations.insert({node.positive_id(), std::string{exitTo}});

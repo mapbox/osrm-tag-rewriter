@@ -35,6 +35,14 @@ struct ExitsRewriter : osmium::handler::Handler {
       return;
 
     const auto *ref = node.get_value_by_key("ref");
+    const auto *refLeft = node.get_value_by_key("ref:left");
+    const auto *refRight = node.get_value_by_key("ref:right");
+
+    // There is an edge case where users tag not only `ref` but also
+    // `ref:left` and `ref:right`. In this case re-writing only
+    // the `ref` tag is always wrong - see #10. Bail out for now.
+    if (ref && (refLeft || refRight))
+      return;
 
     if (ref)
       exits.insert({node.positive_id(), std::string{ref}});
